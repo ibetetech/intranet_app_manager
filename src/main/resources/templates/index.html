@@ -42,6 +42,9 @@
                         <span>我的token:[[${token}]]</span>
                     </div>
                     <i class="icon-angle-right ng-hide"></i>
+                    <span class="w3-right w3-hide-small" style="display:block;float:right;">
+                        <a class="btn btn-logout ng-scope">退出</a>
+                    </span>
                 </nav>
             </div>
         </div>
@@ -190,6 +193,23 @@
             }
         });
     });
+
+    $(".btn-logout").click(function () {
+        var url = "/account/logout";
+        $.ajax({
+            url:url, success: function (result) {
+                console.log(result);
+                if (result.code != 0) {
+                    $.toast({text: result.msg, icon: 'error'});
+                } else {
+                    window.location.href = "/apps";
+                    console.log("reload");
+                    window.location.reload;
+                }
+            }
+        })
+    })
+
     $(".appname").click(function () {
         window.open($(this).attr("data"))
     });

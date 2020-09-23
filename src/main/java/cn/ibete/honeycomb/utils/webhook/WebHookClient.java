@@ -1,0 +1,64 @@
+package cn.ibete.honeycomb.utils.webhook;
+
+import cn.ibete.honeycomb.model.App;
+import cn.ibete.honeycomb.model.WebHook;
+import cn.ibete.honeycomb.storage.StorageUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class WebHookClient {
+
+    static Map<String, Object> webHookList;
+
+    static {
+        webHookList = new HashMap<>();
+    }
+
+    /**
+     * 向 webHook 发送消息
+     * @param app
+     * @param baseURL
+     */
+    public static void sendMessage(App app, String baseURL, StorageUtil storageUtil) {
+        if (app.getWebHookList() == null || app.getWebHookList().size() < 1) {
+            return;
+        }
+
+        for (WebHook webHook :
+                app.getWebHookList()) {
+            String webHookType = webHook.getType();
+            IWebHook iWebHook = getWebHook(webHookType);
+            if (iWebHook != null) {
+                iWebHook.sendMessage(app, baseURL, storageUtil);
+            }
+        }
+    }
+
+
+    /**
+     * 通过类型获取 WebHook 实现
+     * @param webHookType
+     * @return
+     */
+    private static IWebHook getWebHook(String webHookType) {
+        if (webHookType == null || webHookType.length() < 1) {
+            return null;
+        }
+        IWebHook iWebHook = (IWebHook) webHookList.get(webHookType);
+        if (iWebHook != null) {
+            return iWebHook;
+        }
+
+        try {
+            // 动态获取 WebHook
+            Class aClass = Class.forName("cn.ibete.utils.webhook." + webHookType +"WebHook");
+            iWebHook = (IWebHook) aClass.newInstance();
+            webHookList.put(webHookType, iWebHook);
+            return iWebHook;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
